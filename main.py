@@ -66,7 +66,8 @@ def extract_repo_name(url):
 
 def clone_and_fetch(repo_url, target_directory):
     progress_bar = st.progress(0)
-    progress_step = 20
+    progress = 0
+    progress_step = 10
     # Change to the target directory
     if not os.path.exists(target_directory):
         os.makedirs(target_directory)
@@ -74,12 +75,15 @@ def clone_and_fetch(repo_url, target_directory):
 
     # Clone the repository
     st.write(f"Cloning the repository from {repo_url} ...")
-    progress_bar.progress(progress_step)
+    progress += progress_step
+    progress_bar.progress(min(progress, 100))
     result = subprocess.run(["git", "clone", repo_url], capture_output=True, text=True)
-    progress_bar.progress(progress_step * 1)
+    progress += progress_step
+    progress_bar.progress(min(progress, 100))
     st.write(result.stdout)
     st.write(result.stderr)
-    progress_bar.progress(progress_step * 2)
+    progress += progress_step
+    progress_bar.progress(min(progress, 100))
 
     # Extract the repository name from URL
     repo_name = os.path.basename(repo_url).replace('.git', '')
@@ -94,21 +98,25 @@ def clone_and_fetch(repo_url, target_directory):
 
     # Fetch all remote branches locally
     st.write("Fetching all remote branches ...")
-    progress_bar.progress(progress_step * 3)
+    progress += progress_step
+    progress_bar.progress(min(progress, 100))
     result = subprocess.run(["git", "fetch", "--all"], capture_output=True, text=True)
-    progress_bar.progress(progress_step * 4)
+    progress += progress_step
+    progress_bar.progress(min(progress, 100))
     st.write(result.stdout)
     st.write(result.stderr)
 
     # Checkout to a new temporary branch
     result = subprocess.run(["git", "checkout", "-b", "temp_branch_for_fetch"], capture_output=True, text=True)
-    progress_bar.progress(progress_step * 5)
+    progress += progress_step
+    progress_bar.progress(min(progress, 100))
     st.write(result.stdout)
     st.write(result.stderr)
 
     # Print success message
     st.success("Repository cloned and all remote branches fetched successfully.")
-    progress_bar.progress(100)
+    progress = 100
+    progress_bar.progress(min(progress, 100))
 
     # Move back to the original directory
     os.chdir("..")
