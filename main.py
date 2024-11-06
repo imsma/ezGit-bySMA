@@ -143,21 +143,20 @@ target_directory = st.text_input("Enter the target directory to clone repositori
 if 'repo_list' not in st.session_state:
     st.session_state.repo_list = []
 
-new_repo_url = st.text_input("Enter a new Git repository URL to add to the list:")
-if st.button("Add Repository"):
-    if new_repo_url.strip():
-        if is_valid_git_url(new_repo_url.strip()):
-            repo_name = extract_repo_name(new_repo_url.strip())
-            if repo_name and not any(repo.repo_name == repo_name for repo in st.session_state.repo_list):
-                st.session_state.repo_list.append(Repository(repo_name, new_repo_url.strip()))
-                st.success(f"Added repository: {new_repo_url.strip()}")
-                st.session_state["new_repo_url"] = ""
+new_repo_urls = st.text_area("Enter new Git repository URLs to add to the list (one URL per line):")
+if st.button("Add Repositories"):
+    for new_repo_url in new_repo_urls.strip().splitlines():
+        new_repo_url = new_repo_url.strip()
+        if new_repo_url:
+            if is_valid_git_url(new_repo_url.strip()):
+                repo_name = extract_repo_name(new_repo_url.strip())
+                if repo_name and not any(repo.repo_name == repo_name for repo in st.session_state.repo_list):
+                    st.session_state.repo_list.append(Repository(repo_name, new_repo_url.strip()))
+                    st.success(f"Added repository: {new_repo_url.strip()}")
+                else:
+                    st.warning("The repository name is already in the list.")
             else:
-                st.warning("The repository name is already in the list.")
-        else:
-            st.error("Please enter a valid Git SSH or HTTPS repository URL.")
-    else:
-        st.error("Please enter a valid repository URL.")
+                st.error("Please enter a valid Git SSH or HTTPS repository URL.")
 
 edited_df = render_list()
 
