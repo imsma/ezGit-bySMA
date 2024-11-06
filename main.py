@@ -23,7 +23,7 @@ def is_valid_git_url(url):
     github_ssh_regex = r"^git@([^/\s]+)\.com:(?:[^/]+)?(/[^/\s]+)+\.git$"  # Updated for GitHub SSH
     azure_ssh_regex = r"^git@ssh\.dev\.azure\.com:v3/([^/]+)/([^/]+)/([^/]+)$"
     azure_https_regex = r"^https://([^/]+)@dev\.azure\.com/([^/]+)/([^/]+)/_git/([^/]+)$"
-    git_url_regex = r"^(?:git|https?|ssh)://([^/\s]+@)?([^/\s]+)(:[\d]+)?(/[^/\s]+)+\.git$"
+    git_url_regex = r"^(?:git|https?|ssh)://([^/\s]+@)?([^/\s]+)(:[\d]+)?(/[^/\s]+)*(?:\.git|\.git@{[\w.]+})?$"
 
     # Check in the preferred order (specific to generic)
     if re.match(github_ssh_regex, url):
@@ -65,6 +65,8 @@ def extract_repo_name(url):
         return None
 
 def clone_and_fetch(repo_url, target_directory):
+    progress_bar = st.progress(0)
+    progress_step = 20
     # Change to the target directory
     if not os.path.exists(target_directory):
         os.makedirs(target_directory)
@@ -72,9 +74,12 @@ def clone_and_fetch(repo_url, target_directory):
 
     # Clone the repository
     st.write(f"Cloning the repository from {repo_url} ...")
+    progress_bar.progress(progress_step)
     result = subprocess.run(["git", "clone", repo_url], capture_output=True, text=True)
+    progress_bar.progress(progress_step * 1)
     st.write(result.stdout)
     st.write(result.stderr)
+    progress_bar.progress(progress_step * 2)
 
     # Extract the repository name from URL
     repo_name = os.path.basename(repo_url).replace('.git', '')
@@ -89,20 +94,36 @@ def clone_and_fetch(repo_url, target_directory):
 
     # Fetch all remote branches locally
     st.write("Fetching all remote branches ...")
+    progress_bar.progress(progress_step * 3)
     result = subprocess.run(["git", "fetch", "--all"], capture_output=True, text=True)
+    progress_bar.progress(progress_step * 4)
     st.write(result.stdout)
     st.write(result.stderr)
 
     # Checkout to a new temporary branch
     result = subprocess.run(["git", "checkout", "-b", "temp_branch_for_fetch"], capture_output=True, text=True)
+    progress_bar.progress(progress_step * 5)
     st.write(result.stdout)
     st.write(result.stderr)
 
     # Print success message
     st.success("Repository cloned and all remote branches fetched successfully.")
+    progress_bar.progress(100)
 
     # Move back to the original directory
     os.chdir("..")
+
+def render_list():
+    # Render the repository table with st.data_editor
+    if st.session_state.repo_list:
+        repo_data = {
+            "Repository Name": [repo.repo_name for repo in st.session_state.repo_list],
+            "Repository URL": [repo.repo_url for repo in st.session_state.repo_list],
+            "Select": [False for _ in st.session_state.repo_list]
+        }
+        repo_df = pd.DataFrame(repo_data)
+        edited_df = st.data_editor(repo_df, use_container_width=True, num_rows="dynamic", key="repo_table")
+        return edited_df
 
 # Streamlit UI
 st.title("Git Repository Cloner and Branch Fetcher")
@@ -122,6 +143,7 @@ if st.button("Add Repository"):
             if repo_name and not any(repo.repo_name == repo_name for repo in st.session_state.repo_list):
                 st.session_state.repo_list.append(Repository(repo_name, new_repo_url.strip()))
                 st.success(f"Added repository: {new_repo_url.strip()}")
+                st.session_state["new_repo_url"] = ""
             else:
                 st.warning("The repository name is already in the list.")
         else:
@@ -129,18 +151,8 @@ if st.button("Add Repository"):
     else:
         st.error("Please enter a valid repository URL.")
 
-def render_list():
-    # Render the repository table with st.data_editor
-    if st.session_state.repo_list:
-        repo_data = {
-            "Repository Name": [repo.repo_name for repo in st.session_state.repo_list],
-            "Repository URL": [repo.repo_url for repo in st.session_state.repo_list],
-            "Select": [False for _ in st.session_state.repo_list]
-        }
-        repo_df = pd.DataFrame(repo_data)
-        edited_df = st.data_editor(repo_df, use_container_width=True, num_rows="dynamic", key="repo_table")
-        return edited_df
 edited_df = render_list()
+
 # Update the repository list based on selected rows for deletion
 if st.button("Remove Selected Repositories"):
     updated_repo_list = []
@@ -148,8 +160,8 @@ if st.button("Remove Selected Repositories"):
         if not selected:
             updated_repo_list.append(st.session_state.repo_list[idx])
     st.session_state.repo_list = updated_repo_list
-    st.rerun()
     st.success("Selected repositories removed successfully.")
+    st.experimental_rerun()
 
 # Button to clone and fetch branches
 if st.button("Clone and Fetch Branches"):

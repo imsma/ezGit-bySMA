@@ -81,8 +81,11 @@ test_cases = [
 #     else:
 #         print("Invalid Git URL")
 
+r1 = "git@github.com:Stirling-Tools/Stirling-PDF.git"
+res = is_valid_git_url(r1)
+print(res)
 
-for url in test_cases:
-    print(f"normalize_git_url URL: {url}")
-    repo_name = extract_repo_name(url)
-    print(repo_name)
+# for url in test_cases:
+#     print(f"normalize_git_url URL: {url}")
+#     repo_name = extract_repo_name(url)
+#     print(repo_name)
