@@ -77,7 +77,10 @@ def render_list():
         return edited_df
 
 # Streamlit UI
-st.title("Git Repository Cloner and Branch Fetcher")
+st.title("ezGit-bySMA")
+st.subheader("Git Repository Cloner and Branch Fetcher")
+st.divider()
+
 
 # Input for target directory
 target_directory = st.text_input("Enter the target directory to clone repositories:")
@@ -200,3 +203,5 @@ def clone():
             st.error("Please enter both the target directory and at least one repository URL.")    
 
 clone()
+st.divider()
+st.markdown("**bySMA** https://sma.im")
