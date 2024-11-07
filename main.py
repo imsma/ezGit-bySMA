@@ -64,63 +64,6 @@ def extract_repo_name(url):
     else:
         return None
 
-def clone_and_fetch(repo_url, target_directory):
-    progress_bar = st.progress(0)
-    progress = 0
-    progress_step = 10
-    # Change to the target directory
-    if not os.path.exists(target_directory):
-        os.makedirs(target_directory)
-    os.chdir(target_directory)
-
-    # Clone the repository
-    st.write(f"Cloning the repository from {repo_url} ...")
-    progress += progress_step
-    progress_bar.progress(min(progress, 100))
-    result = subprocess.run(["git", "clone", repo_url], capture_output=True, text=True)
-    progress += progress_step
-    progress_bar.progress(min(progress, 100))
-    st.write(result.stdout)
-    st.write(result.stderr)
-    progress += progress_step
-    progress_bar.progress(min(progress, 100))
-
-    # Extract the repository name from URL
-    repo_name = os.path.basename(repo_url).replace('.git', '')
-
-    # Check if the repository was cloned successfully
-    if not os.path.exists(repo_name):
-        st.error(f"Failed to clone the repository {repo_name}")
-        return
-
-    # Change directory to the cloned repository
-    os.chdir(repo_name)
-
-    # Fetch all remote branches locally
-    st.write("Fetching all remote branches ...")
-    progress += progress_step
-    progress_bar.progress(min(progress, 100))
-    result = subprocess.run(["git", "fetch", "--all"], capture_output=True, text=True)
-    progress += progress_step
-    progress_bar.progress(min(progress, 100))
-    st.write(result.stdout)
-    st.write(result.stderr)
-
-    # Checkout to a new temporary branch
-    result = subprocess.run(["git", "checkout", "-b", "temp_branch_for_fetch"], capture_output=True, text=True)
-    progress += progress_step
-    progress_bar.progress(min(progress, 100))
-    st.write(result.stdout)
-    st.write(result.stderr)
-
-    # Print success message
-    st.success("Repository cloned and all remote branches fetched successfully.")
-    progress = 100
-    progress_bar.progress(min(progress, 100))
-
-    # Move back to the original directory
-    os.chdir("..")
-
 def render_list():
     # Render the repository table with st.data_editor
     if st.session_state.repo_list:
@@ -144,6 +87,7 @@ if 'repo_list' not in st.session_state:
     st.session_state.repo_list = []
 
 new_repo_urls = st.text_area("Enter new Git repository URLs to add to the list (one URL per line):")
+
 if st.button("Add Repositories"):
     for new_repo_url in new_repo_urls.strip().splitlines():
         new_repo_url = new_repo_url.strip()
@@ -170,10 +114,89 @@ if st.button("Remove Selected Repositories"):
     st.success("Selected repositories removed successfully.")
     st.experimental_rerun()
 
-# Button to clone and fetch branches
-if st.button("Clone and Fetch Branches"):
-    if target_directory and st.session_state.repo_list:
-        for repo in st.session_state.repo_list:
-            clone_and_fetch(repo.repo_url, target_directory)
+
+st.session_state.count = 0
+def clone_and_fetch(repo_url, target_directory):
+    progress_bar = st.progress(0)
+    st.session_state.count  += 1
+    md = "### {count}".format(count=st.session_state.count)
+    st.markdown(md)
+    progress = 0
+    progress_step = 10
+    # Change to the target directory
+    if not os.path.exists(target_directory):
+        os.makedirs(target_directory)
+    os.chdir(target_directory)
+
+    # Clone the repository
+    st.info(f"Cloning the repository from {repo_url} ...")
+    progress += progress_step
+    progress_bar.progress(min(progress, 100))
+    result = subprocess.run(["git", "clone", repo_url], capture_output=True, text=True)
+    progress += progress_step
+    progress_bar.progress(min(progress, 100))
+    
+    if result.stdout:
+        st.text(result.stdout)
+    if result.stderr:
+        st.text(result.stderr)
+
+
+    progress += progress_step
+    progress_bar.progress(min(progress, 100))
+
+    # Extract the repository name from URL
+    repo_name = os.path.basename(repo_url).replace('.git', '')
+
+    # Check if the repository was cloned successfully
+    if not os.path.exists(repo_name):
+        st.error(f"Failed to clone the repository {repo_name}")
+        return
+
+    # Change directory to the cloned repository
+    os.chdir(repo_name)
+
+    # Fetch all remote branches locally
+    st.info("Fetching all remote branches ...")
+    progress += progress_step
+    progress_bar.progress(min(progress, 100))
+    result = subprocess.run(["git", "fetch", "--all"], capture_output=True, text=True)
+    progress += progress_step
+    progress_bar.progress(min(progress, 100))
+    if result.stdout:
+        st.text(result.stdout)
+    if result.stderr:
+        st.text(result.stderr)
+
+    # Checkout to a new temporary branch
+    result = subprocess.run(["git", "checkout", "-b", "temp_branch_for_fetch"], capture_output=True, text=True)
+    progress += progress_step
+    progress_bar.progress(min(progress, 100))
+    if result.stdout:
+        st.text(result.stdout)
+    if result.stderr:
+        st.text(result.stderr)
     else:
-        st.error("Please enter both the target directory and at least one repository URL.")
+        st.success("Repository cloned and all remote branches fetched successfully.")
+        progress = 100
+        progress_bar.progress(min(progress, 100))        
+
+    # Print success message
+
+
+    # Move back to the original directory
+    os.chdir("..")
+    st.divider()
+
+def clone():
+    # Button to clone and fetch branches
+    if st.button("Clone and Fetch Branches"):
+        if target_directory and st.session_state.repo_list:
+            for repo in st.session_state.repo_list:
+                clone_and_fetch(repo.repo_url, target_directory)
+            st.success("Done")
+            st.balloons()            
+        else:
+            st.error("Please enter both the target directory and at least one repository URL.")    
+
+clone()
