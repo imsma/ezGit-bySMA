@@ -15,9 +15,10 @@ Welcome to **ezGit-bySMA**! This is a Streamlit-based web application that allow
 - **Manage Repository List**: You can view, add, or remove repositories from your list before performing operations.
 - **Clone and Fetch**: Clone all added repositories and fetch their branches easily.
 
-![image](https://github.com/user-attachments/assets/082d0e9a-414d-4b05-b997-df6c2939d848)
+![image](https://github.com/user-attachments/assets/d993d7b9-f5ba-4ec3-acf5-4e3c0f274d7e)
+![image](https://github.com/user-attachments/assets/45b62307-842f-4fdf-a7d6-1f2e42438cfd)
+![image](https://github.com/user-attachments/assets/e53128cd-ee0b-4593-a529-053ef1965772)
 
-![image](https://github.com/user-attachments/assets/84836c9c-1ef0-42dc-81a6-eaa69835d46b)
 
 
 ## Getting Started
