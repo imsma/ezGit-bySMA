@@ -19,8 +19,6 @@ Welcome to **ezGit-bySMA**! This is a Streamlit-based web application that allow
 ![image](https://github.com/user-attachments/assets/45b62307-842f-4fdf-a7d6-1f2e42438cfd)
 ![image](https://github.com/user-attachments/assets/e53128cd-ee0b-4593-a529-053ef1965772)
 
-
-
 ## Getting Started
 
 ### Prerequisites
